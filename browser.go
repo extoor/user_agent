@@ -27,6 +27,24 @@ type Browser struct {
 	Version string
 }
 
+func detectChromeBrowser(browser *Browser, sections []section, idx int) {
+	switch name := sections[idx].name; name {
+	case "Chrome":
+		idx += 1
+
+		if len(sections) > idx && sections[idx].name == "YaBrowser" {
+			browser.Name = "YaBrowser"
+			browser.Version = sections[idx].version
+		} else {
+			browser.Name = name
+		}
+	case "Chromium", "YaBrowser":
+		browser.Name = name
+	default:
+		browser.Name = "Safari"
+	}
+}
+
 // Extract all the information that we can get from the User-Agent string
 // about the browser and update the receiver with this information.
 //
@@ -69,13 +87,7 @@ func (p *UserAgent) detectBrowser(sections []section) {
 					p.browser.Name = "Opera"
 					p.browser.Version = sections[slen-1].version
 				default:
-					if sections[sectionIndex].name == "Chrome" {
-						p.browser.Name = "Chrome"
-					} else if sections[sectionIndex].name == "Chromium" {
-						p.browser.Name = "Chromium"
-					} else {
-						p.browser.Name = "Safari"
-					}
+					detectChromeBrowser(&p.browser, sections, sectionIndex)
 				}
 			} else if engine.name == "Gecko" {
 				name := sections[2].name
